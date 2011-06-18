@@ -1,9 +1,7 @@
-from common import NBR_OF_SLOTS, MAX_SLOT_IDX, DEFAULT_VITALITY, MAX_VITALITY
+from common import NBR_OF_SLOTS, MAX_SLOT_IDX, DEFAULT_VITALITY, MAX_VITALITY, LEFT_APPLICATION, RIGHT_APPLICATION
 from common import Error, NotAlive, InvalidSlot
 from cards import Function, I, get_card, CARDS
-
-LEFT_APPLICATION = '1'
-RIGHT_APPLICATION = '2'
+from command import Command
 
 class State(object):
     def __init__(self):
@@ -85,10 +83,13 @@ class Slot(object):
     
 def test():
     state = State()
-    for slot_ix, card_name in enumerate(CARDS.iterkeys()):
-        state.right_appl(card_name, slot_ix)
-    for slot_ix in range(len(CARDS)):
-        print '%d=%s' % (slot_ix, state.slots[slot_ix])
+    cmd = Command(state)
+    state.right_appl('help', 0)
+    moves = cmd.append_int_param(0, 13)
+    for move in moves:
+        print move
+        state.application(*move)
+        print state[0]
     
 if __name__ == '__main__':
     test()

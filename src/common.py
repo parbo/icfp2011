@@ -3,6 +3,8 @@ MAX_SLOT_IDX = NBR_OF_SLOTS - 1
 DEFAULT_VITALITY = 10000
 MAX_VITALITY = 65535
 MAX_CALL_DEPTH = 1000
+LEFT_APPLICATION = '1'
+RIGHT_APPLICATION = '2'
 
 class Error(Exception):
     def __init__(self, value):

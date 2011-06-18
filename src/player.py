@@ -1,7 +1,8 @@
 #!/usr/bin/python
 import sys
 
-from state import LEFT_APPLICATION, RIGHT_APPLICATION, State
+from common import LEFT_APPLICATION, RIGHT_APPLICATION
+from state import State
 
 class Player(object):
     def __init__(self, first):
