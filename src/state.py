@@ -1,15 +1,16 @@
-from common import NBR_OF_SLOTS, MAX_SLOT_IDX, DEFAULT_VITALITY
+from common import NBR_OF_SLOTS, MAX_SLOT_IDX, DEFAULT_VITALITY, MAX_VITALITY
 from common import Error, NotAlive, InvalidSlot
 from cards import Function, I, card, CARDS
 
-LEFT_APPLICATION = 0
-RIGHT_APPLICATION = 1
+LEFT_APPLICATION = '1'
+RIGHT_APPLICATION = '2'
 
 class State(object):
     def __init__(self):
         self.slots = [Slot() for ix in range(NBR_OF_SLOTS)]
         self.turn = 0
         self.opponent = None
+        self.zombie_appl = False
         # 'result' member is used for test purposes.
         self.result = None
         
@@ -43,6 +44,19 @@ class State(object):
     def right_appl(self, card_name, slot_idx):
         self.application(RIGHT_APPLICATION, card(card_name), self.slots[slot_idx])
         
+    def apply_zombies(self):
+        self.zombie_appl = True
+        for slot in self.slots:
+            if slot.vitality < 0:
+                try:
+                    slot.field(I())
+                except (Error, TypeError) as error:
+                    pass
+                finally:
+                    slot.field = I()
+                    slot.vitality = 0
+        self.zombie_appl = False        
+        
 class Slot(object):
     def __init__(self, field=I(), vitality=DEFAULT_VITALITY):
         self.field = field
@@ -54,6 +68,18 @@ class Slot(object):
     @property
     def alive(self):
         return self.vitality > 0
+    
+    def increase(self, dv):
+        """ Increase the vitality of the slot. """
+        self.vitality += dv
+        if self.vitality > MAX_VITALITY:
+            self.vitality = MAX_VITALITY
+    
+    def decrease(self, dv):
+        """ Decrease the vitality of the slot. """
+        self.vitality -= dv
+        if self.vitality < 0:
+            self.vitality = 0
     
 def test():
     state = State()

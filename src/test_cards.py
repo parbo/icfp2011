@@ -79,12 +79,30 @@ class TestCards(unittest.TestCase):
         self.assertEqual(str(self.p0[0]), '{10000,I}')
         self.assertEqual(str(self.p0[1]), '{10001,I}')
         
+    def test_card_inc_zombie(self):
+        # 'inc' card in zombie mode.
+        self.p0.right_appl('zero', 0)
+        self.p0.left_appl('succ', 0)
+        self.p0.zombie_appl = True
+        self.p0.left_appl('inc', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,I}')
+        self.assertEqual(str(self.p0[1]), '{9999,I}')
+        
     def test_card_dec(self):
         self.p0.right_appl('zero', 0)
         self.p0.left_appl('succ', 0)
         self.p0.left_appl('dec', 0)
         self.assertEqual(str(self.p0[0]), '{10000,I}')
         self.assertEqual(str(self.p1[254]), '{9999,I}')
+        
+    def test_card_dec_zombie(self):
+        # 'dec' card in zombie mode.
+        self.p0.right_appl('zero', 0)
+        self.p0.left_appl('succ', 0)
+        self.p0.zombie_appl = True
+        self.p0.left_appl('dec', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,I}')
+        self.assertEqual(str(self.p1[254]), '{10001,I}')
         
     def test_card_attack(self):
         # attack(i=0, j=0, n=16)
@@ -112,6 +130,34 @@ class TestCards(unittest.TestCase):
         self.p0.right_appl('zero', 0)
         self.assertEqual(str(self.p0[0]), '{9984,I}')
         self.assertEqual(str(self.p1[255]), '{9986,I}')
+        
+    def test_card_attack_zombie(self):
+        # attack(i=0, j=0, n=16) in zombie mode.
+        self.p0.right_appl('attack', 0)
+        # Add parameters 'i' and 'j'.
+        self.p0.right_appl('zero', 0)
+        self.p0.right_appl('zero', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,attack(zero)(zero)}')
+        # Fetch parameter 'n' with 'get[1]'.
+        self.p0.left_appl('K', 0)
+        self.p0.left_appl('S', 0)
+        self.p0.right_appl('get', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,S(K(attack(zero)(zero)))(get)}')
+        self.p0.left_appl('K', 0)
+        self.p0.left_appl('S', 0)
+        self.p0.right_appl('succ', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,S(K(S(K(attack(zero)(zero)))(get)))(succ)}')
+        # Set slot[1] = 16.
+        self.p0.right_appl('zero', 1)
+        self.p0.left_appl('succ', 1)
+        for i in range(4):
+            self.p0.left_appl('dbl', 1)
+        self.assertEqual(str(self.p0[1]), '{10000,16}')
+        # Perform attack.
+        self.p0.zombie_appl = True
+        self.p0.right_appl('zero', 0)
+        self.assertEqual(str(self.p0[0]), '{9984,I}')
+        self.assertEqual(str(self.p1[255]), '{10014,I}')
         
     def test_card_help(self):
         # help(i=0, j=1, n=16)
@@ -143,6 +189,38 @@ class TestCards(unittest.TestCase):
         self.p0.right_appl('zero', 0)
         self.assertEqual(str(self.p0[0]), '{9984,I}')
         self.assertEqual(str(self.p0[1]), '{10017,16}')
+        
+    def test_card_help_zombie(self):
+        # help(i=0, j=1, n=16) in zombie mode.
+        self.p0.right_appl('help', 0)
+        # Add parameters 'i' and 'j'.
+        self.p0.right_appl('zero', 0)
+        self.p0.left_appl('K', 0)
+        self.p0.left_appl('S', 0)
+        self.p0.right_appl('succ', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,S(K(help(zero)))(succ)}')
+        self.p0.right_appl('zero', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,help(zero)(1)}')
+        # Fetch parameter 'n' with 'get[1]'.
+        self.p0.left_appl('K', 0)
+        self.p0.left_appl('S', 0)
+        self.p0.right_appl('get', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,S(K(help(zero)(1)))(get)}')
+        self.p0.left_appl('K', 0)
+        self.p0.left_appl('S', 0)
+        self.p0.right_appl('succ', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,S(K(S(K(help(zero)(1)))(get)))(succ)}')
+        # Set slot[1] = 16.
+        self.p0.right_appl('zero', 1)
+        self.p0.left_appl('succ', 1)
+        for i in range(4):
+            self.p0.left_appl('dbl', 1)
+        self.assertEqual(str(self.p0[1]), '{10000,16}')
+        # Do help call.
+        self.p0.zombie_appl = True
+        self.p0.right_appl('zero', 0)
+        self.assertEqual(str(self.p0[0]), '{9984,I}')
+        self.assertEqual(str(self.p0[1]), '{9983,16}')
         
     def test_card_copy(self):
         self.p1.right_appl('zero', 1)

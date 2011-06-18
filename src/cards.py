@@ -151,9 +151,12 @@ class inc(Function):
         Function.__call__(self)
         slot = state[int(i)]
         if slot.alive:
-            slot.vitality += 1
-            if slot.vitality > MAX_VITALITY:
-                slot.vitality = MAX_VITALITY
+            if state.zombie_appl:
+                # Zombie mode.
+                slot.decrease(1)
+            else:
+                # Normal mode.
+                slot.increase(1)
         return I()
         
 class dec(Function):
@@ -165,7 +168,12 @@ class dec(Function):
         if state.opponent is not None:
             slot = state.opponent[int(MAX_SLOT_IDX - i)]
             if slot.alive:
-                slot.vitality -= 1
+                if state.zombie_appl:
+                    # Zombie mode.
+                    slot.increase(1)
+                else:
+                    # Normal mode.
+                    slot.decrease(1)
         return I()
             
 class attack(Function):
@@ -196,10 +204,12 @@ class attack(Function):
                 slot = state.opponent[MAX_SLOT_IDX - int(self.j)]
                 # Do nothing if the slot is dead.
                 if slot.alive:
-                    slot.vitality -= 9 * n / 10
-                    # Vitality can't decrease below zero.
-                    if slot.vitality < 0:
-                        slot.vitality = 0
+                    if state.zombie_appl:
+                        # Zombie mode.
+                        slot.increase(9 * n / 10)
+                    else:
+                        # Normal mode.
+                        slot.decrease(9 * n / 10)
             return I()
     
     def __str__(self):
@@ -237,9 +247,12 @@ class help(Function):
             slot = state[int(self.j)]
             # Do nothing if the slot is dead.
             if slot.alive:
-                slot.vitality += n * 11 / 10
-                if slot.vitality > MAX_VITALITY:
-                    slot.vitality = MAX_VITALITY
+                if state.zombie_appl:
+                    # Zombie mode.
+                    slot.decrease(n * 11 / 10)
+                else:
+                    # Normal mode:
+                    slot.increase(n * 11 / 10)
             return I()
     
     def __str__(self):
