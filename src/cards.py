@@ -5,7 +5,7 @@ from common import NoInteger, NoFunction, NoOpponent, NotAlive, NotDead, WrongVa
 
 sys.setrecursionlimit(2 * MAX_CALL_DEPTH)
 
-def card(name):
+def get_card(name):
     """ Return an instance of the card with the given name. """
     cls = CARDS[name]
     return cls()

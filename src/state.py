@@ -1,6 +1,6 @@
 from common import NBR_OF_SLOTS, MAX_SLOT_IDX, DEFAULT_VITALITY, MAX_VITALITY
 from common import Error, NotAlive, InvalidSlot
-from cards import Function, I, card, CARDS
+from cards import Function, I, get_card, CARDS
 
 LEFT_APPLICATION = '1'
 RIGHT_APPLICATION = '2'
@@ -19,7 +19,9 @@ class State(object):
             raise InvalidSlot('Invalid slot number (%d)' % key)
         return self.slots[key]
         
-    def application(self, direction, card, slot):
+    def application(self, direction, card_name, slot_ix):
+        card = get_card(card_name)
+        slot = self.slots[slot_ix]
         self.turn += 1
         result = None
         Function.calls = 0
@@ -38,11 +40,11 @@ class State(object):
             slot.field = result
             self.result = result
         
-    def left_appl(self, card_name, slot_idx):
-        self.application(LEFT_APPLICATION, card(card_name), self.slots[slot_idx])
+    def left_appl(self, card_name, slot_ix):
+        self.application(LEFT_APPLICATION, card_name, slot_ix)
         
-    def right_appl(self, card_name, slot_idx):
-        self.application(RIGHT_APPLICATION, card(card_name), self.slots[slot_idx])
+    def right_appl(self, card_name, slot_ix):
+        self.application(RIGHT_APPLICATION, card_name, slot_ix)
         
     def apply_zombies(self):
         self.zombie_appl = True
