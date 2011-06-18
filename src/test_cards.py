@@ -1,5 +1,6 @@
 import unittest
 
+import common
 import state
 import cards
 
@@ -170,6 +171,14 @@ class TestCards(unittest.TestCase):
         self.p0.right_appl('zero', 0)
         self.assertEqual(str(self.p0[0]), '{10000,I}')
         self.assertEqual(str(self.p1[255]), '{-1,zero}')
+        
+    def test_call_depth(self):
+        self.p0.right_appl('S', 0)
+        self.p0.right_appl('get', 0)
+        self.p0.right_appl('I', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,S(get)(I)}')
+        self.p0.right_appl('zero', 0)
+        self.assertTrue(isinstance(self.p0.result, common.CallDepthExceeded))
 
 if __name__ == '__main__':
     #unittest.main()

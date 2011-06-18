@@ -1,5 +1,9 @@
-from common import MAX_VITALITY, MAX_SLOT_IDX
-from common import NoInteger, NoFunction, NoOpponent, NotAlive, NotDead, WrongValue
+import sys
+
+from common import MAX_VITALITY, MAX_SLOT_IDX, MAX_CALL_DEPTH
+from common import NoInteger, NoFunction, NoOpponent, NotAlive, NotDead, WrongValue, CallDepthExceeded
+
+sys.setrecursionlimit(2 * MAX_CALL_DEPTH)
 
 def card(name):
     """ Return an instance of the card with the given name. """
@@ -18,8 +22,16 @@ class Card(object):
         return self.__class__.__name__
     
 class Function(Card):
+    # Total call count.
+    calls = 0
+    
     def __init__(self):
         Card.__init__(self)
+        
+    def __call__(self):
+        Function.calls += 1
+        if Function.calls > MAX_CALL_DEPTH:
+            raise CallDepthExceeded("Call depth exceeded when calling function '%s'." % self.name)
     
     def __int__(self):
         raise NoInteger("Cards of type '%s' has no integer value." % self.name)
@@ -29,6 +41,7 @@ class I(Function):
         Function.__init__(self)
     
     def __call__(self, state, x):
+        Function.__call__(self)
         return x
         
 class zero(Card):
@@ -46,6 +59,7 @@ class succ(Function):
         Function.__init__(self)
     
     def __call__(self, state, n):
+        Function.__call__(self)
         m = int(n) + 1
         if m > MAX_VITALITY:
             m = MAX_VITALITY
@@ -56,6 +70,7 @@ class dbl(Function):
         Function.__init__(self)
     
     def __call__(self, state, n):
+        Function.__call__(self)
         m = 2 * int(n)
         if m > MAX_VITALITY:
             m = MAX_VITALITY
@@ -66,6 +81,7 @@ class get(Function):
         Function.__init__(self)
     
     def __call__(self, state, i):
+        Function.__call__(self)
         slot = state[int(i)]
         if slot.alive:
             return slot.field
@@ -77,6 +93,7 @@ class put(Function):
         Function.__init__(self)
     
     def __call__(self, state, x):
+        Function.__call__(self)
         return I()
         
 class S(Function):
@@ -86,6 +103,7 @@ class S(Function):
         self.g = None
     
     def __call__(self, state, x):
+        Function.__call__(self)
         if self.f is None:
             self.f = x
             return self
@@ -112,6 +130,7 @@ class K(Function):
         self.x = None
     
     def __call__(self, state, x):
+        Function.__call__(self)
         if self.x is None:
             self.x = x
             return self
@@ -129,6 +148,7 @@ class inc(Function):
         Function.__init__(self)
     
     def __call__(self, state, i):
+        Function.__call__(self)
         slot = state[int(i)]
         if slot.alive:
             slot.vitality += 1
@@ -141,6 +161,7 @@ class dec(Function):
         Function.__init__(self)
     
     def __call__(self, state, i):
+        Function.__call__(self)
         if state.opponent is not None:
             slot = state.opponent[int(MAX_SLOT_IDX - i)]
             if slot.alive:
@@ -154,6 +175,7 @@ class attack(Function):
         self.j = None
     
     def __call__(self, state, x):
+        Function.__call__(self)
         if self.i is None:
             # x -> i
             self.i = x
@@ -195,6 +217,7 @@ class help(Function):
         self.j = None
     
     def __call__(self, state, x):
+        Function.__call__(self)
         if self.i is None:
             # x -> i
             self.i = x
@@ -232,6 +255,7 @@ class copy(Function):
         Function.__init__(self)
     
     def __call__(self, state, i):
+        Function.__call__(self)
         if state.opponent is None:
             raise NoOpponent("The 'copy' card was called in single player mode.")
         slot = state.opponent[int(i)]
@@ -242,6 +266,7 @@ class revive(Function):
         Function.__init__(self)
     
     def __call__(self, state, i):
+        Function.__call__(self)
         slot = state[int(i)]
         if not slot.alive:
             slot.vitality = 1
@@ -253,6 +278,7 @@ class zombie(Function):
         self.i = None
     
     def __call__(self, state, x):
+        Function.__call__(self)
         if self.i is None:
             self.i = x
             return self
