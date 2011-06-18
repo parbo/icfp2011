@@ -3,6 +3,8 @@ import sys
 
 from common import LEFT_APPLICATION, RIGHT_APPLICATION
 from state import State
+from command import Command
+from strategy import AttackStrategy, DefenceStrategy
 
 class Player(object):
     def __init__(self, first):
@@ -11,19 +13,25 @@ class Player(object):
         self.opponent = State()
         self.player.opponent = self.opponent
         self.opponent.opponent = self.player
+        self.cmd = Command(self.player)
+        if self.first:
+            self.strategy = AttackStrategy(self.player, self.opponent, self.cmd)
+        else:
+            self.strategy = DefenceStrategy(self.player, self.opponent, self.cmd)
         
     def play(self):
         if self.first:
-            self.player_move(LEFT_APPLICATION, 'I', 0)
+            self.player_move()
             self.opponent_move()
         else:
             self.opponent_move()
-            self.player_move(LEFT_APPLICATION, 'I', 0)
+            self.player_move()
     
-    def player_move(self, direction, card_name, slot_ix):
+    def player_move(self):
         self.player.apply_zombies()
-        self.player.application(direction, card_name, slot_ix)
-        self.write_move(LEFT_APPLICATION, 'I', 0)
+        move = self.strategy.move()
+        self.player.application(*move)
+        self.write_move(*move)
 
     def opponent_move(self):
         move = self.read_move()
