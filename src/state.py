@@ -1,6 +1,6 @@
 from common import NBR_OF_SLOTS, MAX_SLOT_IDX, DEFAULT_VITALITY
 from common import Error, NotAlive, InvalidSlot
-from cards import I, CARDS
+from cards import I, card, CARDS
 
 LEFT_APPLICATION = 0
 RIGHT_APPLICATION = 1
@@ -33,10 +33,10 @@ class State(object):
             slot.field = result
         
     def left_appl(self, card_name, slot_idx):
-        self.application(LEFT_APPLICATION, CARDS[card_name](), self.slots[slot_idx])
+        self.application(LEFT_APPLICATION, card(card_name), self.slots[slot_idx])
         
     def right_appl(self, card_name, slot_idx):
-        self.application(RIGHT_APPLICATION, CARDS[card_name](), self.slots[slot_idx])
+        self.application(RIGHT_APPLICATION, card(card_name), self.slots[slot_idx])
         
 class Slot(object):
     def __init__(self, field=I(), vitality=DEFAULT_VITALITY):

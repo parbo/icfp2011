@@ -1,6 +1,11 @@
 from common import MAX_VITALITY, MAX_SLOT_IDX
 from common import NoInteger, NoFunction, NoOpponent, NotAlive, NotDead, WrongValue
 
+def card(name):
+    """ Return an instance of the card with the given name. """
+    cls = CARDS[name]
+    return cls()
+    
 class Card(object):
     def __init__(self):
         pass
@@ -88,9 +93,9 @@ class S(Function):
             self.g = x
             return self
         else:
-            h = self.f(x)
-            y = self.g(x)
-            z = h(y)
+            h = self.f(state, x)
+            y = self.g(state, x)
+            z = h(state, y)
             return z
     
     def __str__(self):
@@ -111,7 +116,7 @@ class K(Function):
             self.x = x
             return self
         else:
-            return x
+            return self.x
     
     def __str__(self):
         if self.x is None:
@@ -137,7 +142,7 @@ class dec(Function):
     
     def __call__(self, state, i):
         if state.opponent is not None:
-            slot = state.opponent[int(i)]
+            slot = state.opponent[int(MAX_SLOT_IDX - i)]
             if slot.alive:
                 slot.vitality -= 1
         return I()
@@ -173,7 +178,7 @@ class attack(Function):
                     # Vitality can't decrease below zero.
                     if slot.vitality < 0:
                         slot.vitality = 0
-            return z
+            return I()
     
     def __str__(self):
         if self.i is None:
@@ -237,7 +242,7 @@ class revive(Function):
         Function.__init__(self)
     
     def __call__(self, state, i):
-        slot = state[int(self.i)]
+        slot = state[int(i)]
         if not slot.alive:
             slot.vitality = 1
         return I()
@@ -253,7 +258,7 @@ class zombie(Function):
             return self
         else:
             if state.opponent is not None:
-                slot = state.opponent[MAX_SLOT_IDX - int(self.j)]
+                slot = state.opponent[MAX_SLOT_IDX - int(self.i)]
                 if slot.alive:
                     raise NotDead("Function 'zombie' applied to a slot that is alive.")
                 slot.field = x
@@ -266,4 +271,4 @@ class zombie(Function):
         else:
             return 'zombie(%s)' % self.i
         
-CARDS = dict([(card.__name__, card) for card in [I, zero, succ, dbl, get, put, S, K, inc, dec, attack, help, copy, revive, zombie]])
+CARDS = dict([(c.__name__, c) for c in [I, zero, succ, dbl, get, put, S, K, inc, dec, attack, help, copy, revive, zombie]])
