@@ -7,6 +7,7 @@ class Strategy(object):
         self.cmd = cmd
         self.current_move_seq = []
         self.assigned_registers = set()
+        self.min_register_vitality = 2
         
     def move(self):
         if not self.current_move_seq:
@@ -21,7 +22,7 @@ class Strategy(object):
     def get_register(self, min_ix=0):
         """ Return the index of a slot that can be used as a command register. """
         for ix, slot in enumerate(self.player.slots):
-            if (ix >= min_ix) and slot.alive and (ix not in self.assigned_registers):
+            if (ix >= min_ix) and slot.vitality >= self.min_register_vitality and (ix not in self.assigned_registers):
                 return ix
         return 0
         
@@ -168,13 +169,13 @@ class AttackWeakest(Strategy):
         
         if self.player[strongest].vitality - self.attack_margin > attack_value:
             if self.attack_cache.is_valid():
-                moves.extend(self.attack_cache.load_register(strongest, MAX_SLOT_IDX - target, attack_value))
+                moves.extend(self.attack_cache.load_registers(strongest, MAX_SLOT_IDX - target, attack_value))
                 moves.extend(self.attack_cache.load_cmd())
                 moves.append(self.attack_cache.cmd_terminator())
             else:
                 self.attack_cache.invalidate()
                 self.attack_cache.assign_registers()
-                moves.extend(self.attack_cache.load_register(strongest, MAX_SLOT_IDX - target, attack_value))
+                moves.extend(self.attack_cache.load_registers(strongest, MAX_SLOT_IDX - target, attack_value))
                 attack_moves = self.attack_cache.attack_moves()
                 moves.extend(attack_moves[:-1])
                 moves.extend(self.attack_cache.store_cmd())

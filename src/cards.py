@@ -205,7 +205,7 @@ class attack(Function):
             slot = state[int(self.i)]
             # n must not be greater than v[i]
             if n > slot.vitality:
-                raise WrongValue("n > v[i] (n=%d, v[%d]=%d), 'attack' failed." % (n, i, slot.vitality))
+                raise WrongValue("n > v[i] (n=%d, v[%d]=%d), 'attack' failed." % (n, self.i, slot.vitality))
             slot.vitality -= n
             if state.opponent is not None:
                 slot = state.opponent[MAX_SLOT_IDX - int(self.j)]
@@ -252,7 +252,7 @@ class help(Function):
             slot = state[int(self.i)]
             # n must not be greater than v[i]
             if n > slot.vitality:
-                raise WrongValue("n > v[i] (n=%d, v[%d]=%d), 'help' failed." % (n, i, slot.vitality))
+                raise WrongValue("n > v[i] (n=%d, v[%d]=%d), 'help' failed." % (n, self.i, slot.vitality))
             slot.vitality -= n
             slot = state[int(self.j)]
             # Do nothing if the slot is dead.
