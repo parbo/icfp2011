@@ -31,6 +31,7 @@ class State(object):
                 result = slot.field(self, card)
         except (Error, TypeError) as error:
             #print 'Error:', error
+            Function.calls = 0
             slot.field = I()
             self.result = error
         else:
@@ -47,11 +48,13 @@ class State(object):
         self.zombie_appl = True
         for slot in self.slots:
             if slot.vitality < 0:
+                Function.calls = 0
                 try:
                     slot.field(I())
                 except (Error, TypeError) as error:
                     pass
                 finally:
+                    Function.calls = 0
                     slot.field = I()
                     slot.vitality = 0
         self.zombie_appl = False        

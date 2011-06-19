@@ -257,6 +257,12 @@ class TestCards(unittest.TestCase):
         self.assertEqual(str(self.p0[0]), '{10000,S(get)(I)}')
         self.p0.right_appl('zero', 0)
         self.assertTrue(isinstance(self.p0.result, common.CallDepthExceeded))
+        
+    def test_apply_zombie(self):
+        self.p0.right_appl('zero', 0)
+        self.p0[0].vitality = -1
+        self.p0.apply_zombies()
+        self.assertEqual(str(self.p0[0]), '{0,I}')
 
 if __name__ == '__main__':
     #unittest.main()

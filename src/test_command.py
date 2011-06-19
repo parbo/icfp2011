@@ -48,6 +48,25 @@ class TestCommand(unittest.TestCase):
         self.assertEqual(str(self.p0[5]), '{10550,I}')
         self.assertEqual(str(self.p0[10]), '{10000,500}')
         
+    def test_help_slot_ref(self):
+        # src reference
+        moves = self.cmd.set_integer(10, 100)
+        self.play_moves(moves)
+        # tgt reference
+        moves = self.cmd.set_integer(11, 101)
+        self.play_moves(moves)
+        # number reference
+        moves = self.cmd.set_integer(12, 500)
+        self.play_moves(moves)
+        moves = self.cmd.help_slot_ref(10, 11, 0, 12)
+        self.play_moves(moves)
+        self.assertEqual(str(self.p0[0]), '{10000,I}')
+        self.assertEqual(str(self.p0[10]), '{10000,100}')
+        self.assertEqual(str(self.p0[11]), '{10000,101}')
+        self.assertEqual(str(self.p0[12]), '{10000,500}')
+        self.assertEqual(str(self.p0[100]), '{9500,I}')
+        self.assertEqual(str(self.p0[101]), '{10550,I}')
+        
     def test_attack_slot(self):
         moves = self.cmd.set_integer(10, 500)
         self.play_moves(moves)
@@ -58,6 +77,25 @@ class TestCommand(unittest.TestCase):
         self.assertEqual(str(self.p0[4]), '{9500,I}')
         self.assertEqual(str(self.p0[10]), '{10000,500}')
         self.assertEqual(str(self.p1[250]), '{9550,I}')
+        
+    def test_attack_slot_ref(self):
+        # src reference
+        moves = self.cmd.set_integer(10, 100)
+        self.play_moves(moves)
+        # tgt reference
+        moves = self.cmd.set_integer(11, 101)
+        self.play_moves(moves)
+        # number reference
+        moves = self.cmd.set_integer(12, 500)
+        self.play_moves(moves)
+        moves = self.cmd.attack_slot_ref(10, 11, 0, 12)
+        self.play_moves(moves)
+        self.assertEqual(str(self.p0[0]), '{10000,I}')
+        self.assertEqual(str(self.p0[10]), '{10000,100}')
+        self.assertEqual(str(self.p0[11]), '{10000,101}')
+        self.assertEqual(str(self.p0[12]), '{10000,500}')
+        self.assertEqual(str(self.p0[100]), '{9500,I}')
+        self.assertEqual(str(self.p1[154]), '{9550,I}')
         
     def test_revive_slot(self):
         self.p0[10].vitality = 0

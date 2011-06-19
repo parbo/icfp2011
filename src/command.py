@@ -51,6 +51,13 @@ class Command(object):
         moves.append((RIGHT_APPLICATION, 'zero', slot_ix))
         return moves
     
+    def append_slot_ref(self, cmd_ix, ref_ix):
+        """ Append a reference to slot 'ref_ix', to the sequence in 'cmd_ix'. """
+        moves = []
+        moves.extend(self.append_card(cmd_ix, 'get'))
+        moves.extend(self.append_int_param(cmd_ix, ref_ix))
+        return moves
+    
     def help_slot(self, src_ix, tgt_ix, cmd_ix, n_ix):
         """
         Help the 'tgt_ix' slot from the 'src_ix' slot. 'cmd_ix' is the slot
@@ -61,8 +68,19 @@ class Command(object):
         moves.append((RIGHT_APPLICATION, 'help', cmd_ix))
         moves.extend(self.append_int_param(cmd_ix, src_ix))
         moves.extend(self.append_int_param(cmd_ix, tgt_ix))
-        moves.extend(self.append_card(cmd_ix, 'get'))
-        moves.extend(self.append_int_param(cmd_ix, n_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, n_ix))
+        return moves
+    
+    def help_slot_ref(self, src_ix, tgt_ix, cmd_ix, n_ix):
+        """
+        Same as help_slot() except that 'src_ix' and 'tgt_ix' are reference slots
+        pointing at the source and target.
+        """
+        moves = []
+        moves.append((RIGHT_APPLICATION, 'help', cmd_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, src_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, tgt_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, n_ix))
         return moves
     
     def attack_slot(self, src_ix, tgt_ix, cmd_ix, n_ix):
@@ -75,8 +93,19 @@ class Command(object):
         moves.append((RIGHT_APPLICATION, 'attack', cmd_ix))
         moves.extend(self.append_int_param(cmd_ix, src_ix))
         moves.extend(self.append_int_param(cmd_ix, tgt_ix))
-        moves.extend(self.append_card(cmd_ix, 'get'))
-        moves.extend(self.append_int_param(cmd_ix, n_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, n_ix))
+        return moves
+    
+    def attack_slot_ref(self, src_ix, tgt_ix, cmd_ix, n_ix):
+        """
+        Same as attack_slot() except that 'src_ix' and 'tgt_ix' are reference slots
+        pointing at the source and target.
+        """
+        moves = []
+        moves.append((RIGHT_APPLICATION, 'attack', cmd_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, src_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, tgt_ix))
+        moves.extend(self.append_slot_ref(cmd_ix, n_ix))
         return moves
     
     def revive_slot(self, tgt_ix, cmd_ix, inc_nbr=0):
