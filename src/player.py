@@ -17,7 +17,7 @@ class Player(object):
         if self.first:
             self.strategy = AttackWeakest(self.player, self.opponent, self.cmd)
         else:
-            self.strategy = SimpleAttacker(self.player, self.opponent, self.cmd)
+            self.strategy = AttackWeakest(self.player, self.opponent, self.cmd)
         
     def play(self):
         if self.first:
@@ -61,11 +61,7 @@ class Player(object):
 def play(first_player):
     player = Player(first_player)
     while True:
-        try:
-            player.play()
-        except (IOError, ValueError, KeyboardInterrupt) as err:
-            print err
-            sys.exit(0)
+        player.play()
         
 if __name__ == '__main__':
     first_player = (sys.argv[1] == '0')
