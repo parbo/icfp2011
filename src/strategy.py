@@ -123,11 +123,11 @@ class Cache(object):
         
     def load_registers(self, src_ix, tgt_ix, value):
         moves = []
-        if self.src_ref.field != src_ix:
+        if self.player[self.src_ref].field != src_ix:
             moves.extend(self.cmd.set_integer(self.src_ref, src_ix))
-        if self.tgt_ref.field != tgt_ix:
+        if self.player[self.tgt_ref].field != tgt_ix:
             moves.extend(self.cmd.set_integer(self.tgt_ref, tgt_ix))
-        if self.val_ref.field != value:
+        if self.player[self.val_ref].field != value:
             moves.extend(self.cmd.set_integer(self.val_ref, value))
         return moves
     
@@ -173,16 +173,18 @@ class AttackWeakest(Strategy):
         if self.player[strongest].vitality - self.attack_margin > attack_value:
             if self.attack_cache.is_valid():
                 moves.extend(self.attack_cache.load_registers(strongest, MAX_SLOT_IDX - target, attack_value))
-                moves.extend(self.attack_cache.load_cmd())
-                moves.append(self.attack_cache.cmd_terminator())
+                moves.extend(self.attack_cache.attack_moves())
+                #moves.extend(self.attack_cache.load_cmd())
+                #moves.append(self.attack_cache.cmd_terminator())
             else:
                 self.attack_cache.invalidate()
                 self.attack_cache.assign_registers()
                 moves.extend(self.attack_cache.load_registers(strongest, MAX_SLOT_IDX - target, attack_value))
-                attack_moves = self.attack_cache.attack_moves()
-                moves.extend(attack_moves[:-1])
-                moves.extend(self.attack_cache.store_cmd())
-                moves.append(attack_moves[-1])
+                moves.extend(self.attack_cache.attack_moves())
+                #attack_moves = self.attack_cache.attack_moves()
+                #moves.extend(attack_moves[:-1])
+                #moves.extend(self.attack_cache.store_cmd())
+                #moves.append(attack_moves[-1])
             return moves
         
         # Build vitality.
@@ -198,7 +200,7 @@ class AttackWeakest(Strategy):
         """ Return the index of the prefered target. """
         # The target is selected based on its stength and field contents.
         # Weaker targets with much content are selected first.
-        slots = [(s.vitality - len(str(s.field)), ix) for ix, s in enumerate(self.opponent.slots)]
+        slots = [(s.vitality - len(str(s.field)), ix) for ix, s in enumerate(self.opponent.slots) if s.alive]
         slots.sort()
         return slots[0][1]
     
