@@ -123,9 +123,12 @@ class Cache(object):
         
     def load_registers(self, src_ix, tgt_ix, value):
         moves = []
-        moves.extend(self.cmd.set_integer(self.src_ref, src_ix))
-        moves.extend(self.cmd.set_integer(self.tgt_ref, tgt_ix))
-        moves.extend(self.cmd.set_integer(self.val_ref, value))
+        if self.src_ref.field != src_ix:
+            moves.extend(self.cmd.set_integer(self.src_ref, src_ix))
+        if self.tgt_ref.field != tgt_ix:
+            moves.extend(self.cmd.set_integer(self.tgt_ref, tgt_ix))
+        if self.val_ref.field != value:
+            moves.extend(self.cmd.set_integer(self.val_ref, value))
         return moves
     
     def store_cmd(self):
