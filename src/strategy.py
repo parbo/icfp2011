@@ -47,6 +47,9 @@ class Strategy(object):
     def dead_slots(self, state):
         return [ix for ix, s in enumerate(state.slots) if not s.alive]
         
+    def weak_slots(self, state):
+        return [ix for ix, s in enumerate(state.slots) if s.vitality == 1]
+        
     def attack_value(self, target_vitality):
         target_vitality *= 10
         return target_vitality / 9 + target_vitality % 9
@@ -161,6 +164,11 @@ class AttackWeakest(Strategy):
         dead_slots = self.dead_slots(self.player)
         if dead_slots:
             return self.cmd.revive_slot(dead_slots[0], self.get_register())
+            
+        # Decrease slots with vitality=1.
+        weak_slots = self.weak_slots(self.opponent)
+        if weak_slots:
+            return self.cmd.dec_slot(MAX_SLOT_IDX - weak_slots[0], self.get_register())
             
         # Look for a target to attack.
         #weakest = self.weakest_slot(self.opponent)

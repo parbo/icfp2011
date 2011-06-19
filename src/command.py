@@ -116,3 +116,10 @@ class Command(object):
         moves.append((LEFT_APPLICATION, 'revive', cmd_ix))
         return moves
     
+    def dec_slot(self, tgt_ix, cmd_ix):
+        """ 
+        Decrease the slot 'tgt_ix', using 'cmd_ix' to store the address.
+        """
+        moves = self.set_integer(cmd_ix, tgt_ix)
+        moves.append((LEFT_APPLICATION, 'dec', cmd_ix))
+        return moves
