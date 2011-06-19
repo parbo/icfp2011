@@ -78,3 +78,12 @@ class Command(object):
         moves.extend(self.append_card(cmd_ix, 'get'))
         moves.extend(self.append_int_param(cmd_ix, n_ix))
         return moves
+    
+    def revive_slot(self, tgt_ix, cmd_ix, inc_nbr=0):
+        """
+        Revive the slot 'tgt_ix', using 'cmd_ix' to store the address.
+        """
+        moves = self.set_integer(cmd_ix, tgt_ix)
+        moves.append((LEFT_APPLICATION, 'revive', cmd_ix))
+        return moves
+    

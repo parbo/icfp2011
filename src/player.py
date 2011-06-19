@@ -4,7 +4,7 @@ import sys
 from common import LEFT_APPLICATION, RIGHT_APPLICATION
 from state import State
 from command import Command
-from strategy import SimpleAttacker, SimpleDefender
+from strategy import SimpleAttacker, SimpleDefender, AttackWeakest
 
 class Player(object):
     def __init__(self, first):
@@ -15,9 +15,9 @@ class Player(object):
         self.opponent.opponent = self.player
         self.cmd = Command(self.player)
         if self.first:
-            self.strategy = SimpleAttacker(self.player, self.opponent, self.cmd)
+            self.strategy = AttackWeakest(self.player, self.opponent, self.cmd)
         else:
-            self.strategy = SimpleDefender(self.player, self.opponent, self.cmd)
+            self.strategy = SimpleAttacker(self.player, self.opponent, self.cmd)
         
     def play(self):
         if self.first:
@@ -61,7 +61,11 @@ class Player(object):
 def play(first_player):
     player = Player(first_player)
     while True:
-        player.play()
+        try:
+            player.play()
+        except (IOError, ValueError, KeyboardInterrupt) as err:
+            print err
+            sys.exit(0)
         
 if __name__ == '__main__':
     first_player = (sys.argv[1] == '0')

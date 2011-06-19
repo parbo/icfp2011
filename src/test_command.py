@@ -59,6 +59,13 @@ class TestCommand(unittest.TestCase):
         self.assertEqual(str(self.p0[10]), '{10000,500}')
         self.assertEqual(str(self.p1[250]), '{9550,I}')
         
+    def test_revive_slot(self):
+        self.p0[10].vitality = 0
+        moves = self.cmd.revive_slot(10, 0)
+        self.play_moves(moves)
+        self.assertEqual(str(self.p0[0]), '{10000,I}')
+        self.assertEqual(str(self.p0[10]), '{1,I}')
+        
 if __name__ == '__main__':
     #unittest.main()
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCommand)
