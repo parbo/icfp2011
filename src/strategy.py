@@ -88,23 +88,25 @@ class Cache(object):
         self.tgt_ref = None
         self.val_ref = None
         self.cmd_ix = None
-        self.cmd_cache = None
+        #self.cmd_cache = None
         self.sequence_terminator = None
         
     def is_valid(self):
-        for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache):
+        #for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache):
+        for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix):
             if (slot_ix is None) or (not self.player[slot_ix].alive):
                 return False
         return True
     
     def invalidate(self):
-        for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache):
+        #for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache):
+        for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix):
             self.strategy.assigned_registers.discard(slot_ix)
         self.src_ref = None
         self.tgt_ref = None
         self.val_ref = None
         self.cmd_ix = None
-        self.cmd_cache = None
+        #self.cmd_cache = None
         
     def assign_registers(self):
         self.src_ref = self.strategy.get_register(0)
@@ -115,12 +117,9 @@ class Cache(object):
         self.strategy.assigned_registers.add(self.val_ref)
         self.cmd_ix = self.strategy.get_register(self.val_ref)
         self.strategy.assigned_registers.add(self.cmd_ix)
-        self.cmd_cache = self.strategy.get_register(self.cmd_ix)
-        self.strategy.assigned_registers.add(self.cmd_cache)
-        
-    def slot_conflict(self, slot_ix):
-        return slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache)
-        
+        #self.cmd_cache = self.strategy.get_register(self.cmd_ix)
+        #self.strategy.assigned_registers.add(self.cmd_cache)
+                
     def load_registers(self, src_ix, tgt_ix, value):
         moves = []
         if self.player[self.src_ref].field != src_ix:
@@ -190,10 +189,20 @@ class AttackWeakest(Strategy):
         # Build vitality.
         src = self.get_vitality_src()
         vitality_transfer = self.player[src].vitality / 2
-        cmd_reg = self.get_register()
-        value_reg = self.get_register(cmd_reg + 1)
-        moves = self.cmd.set_integer(value_reg, vitality_transfer)
-        moves.extend(self.cmd.attack_slot(src, strongest, cmd_reg, value_reg))
+        
+        if self.help_cache.is_valid():
+            moves.extend(self.help_cache.load_registers(src, strongest, vitality_transfer))
+            moves.extend(self.help_cache.help_moves())
+        else:
+            self.help_cache.invalidate()
+            self.help_cache.assign_registers()
+            moves.extend(self.help_cache.load_registers(src, strongest, vitality_transfer))
+            moves.extend(self.help_cache.help_moves())
+            
+        #cmd_reg = self.get_register()
+        #value_reg = self.get_register(cmd_reg + 1)
+        #moves = self.cmd.set_integer(value_reg, vitality_transfer)
+        #moves.extend(self.cmd.attack_slot(src, strongest, cmd_reg, value_reg))
         return moves
     
     def select_target(self):
