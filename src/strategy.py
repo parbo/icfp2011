@@ -30,7 +30,7 @@ class Strategy(object):
                 slot_ix = ix
         return slot_ix
     
-class AttackStrategy(Strategy):
+class SimpleAttacker(Strategy):
     def __init__(self, player, opponent, cmd):
         Strategy.__init__(self, player, opponent, cmd)
         self.init = True
@@ -42,9 +42,9 @@ class AttackStrategy(Strategy):
         else:
             weakest = self.weakest_slot(self.opponent)
             strongest = self.strongest_slot(self.player)
-            return self.cmd.attack_slot(strongest, weakest, 0, 1)
+            return self.cmd.attack_slot(strongest, 255 - weakest, 0, 1)
         
-class DefenceStrategy(Strategy):
+class SimpleDefender(Strategy):
     def __init__(self, player, opponent, cmd):
         Strategy.__init__(self, player, opponent, cmd)
         self.init = True

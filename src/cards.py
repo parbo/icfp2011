@@ -16,7 +16,7 @@ class Card(object):
         
     def __str__(self):
         return self.name
-    
+        
     @property
     def name(self):
         return self.__class__.__name__
@@ -35,7 +35,7 @@ class Function(Card):
     
     def __int__(self):
         raise NoInteger("Cards of type '%s' has no integer value." % self.name)
-        
+                
 class I(Function):
     def __init__(self):
         Function.__init__(self)
@@ -105,11 +105,14 @@ class S(Function):
     def __call__(self, state, x):
         Function.__call__(self)
         if self.f is None:
-            self.f = x
-            return self
+            s = S()
+            s.f = x
+            return s
         elif self.g is None:
-            self.g = x
-            return self
+            s = S()
+            s.f = self.f
+            s.g = x
+            return s
         else:
             h = self.f(state, x)
             y = self.g(state, x)
@@ -132,8 +135,9 @@ class K(Function):
     def __call__(self, state, x):
         Function.__call__(self)
         if self.x is None:
-            self.x = x
-            return self
+            k = K()
+            k.x = x
+            return k
         else:
             return self.x
     
@@ -186,12 +190,15 @@ class attack(Function):
         Function.__call__(self)
         if self.i is None:
             # x -> i
-            self.i = x
-            return self
+            a = attack()
+            a.i = x
+            return a
         elif self.j is None:
             # x -> j
-            self.j = x
-            return self
+            a = attack()
+            a.i = self.i
+            a.j = x
+            return a
         else:
             # x -> n
             n = int(x)
@@ -230,12 +237,15 @@ class help(Function):
         Function.__call__(self)
         if self.i is None:
             # x -> i
-            self.i = x
-            return self
+            h = help()
+            h.i = x
+            return h
         elif self.j is None:
             # x -> j
-            self.j = x
-            return self
+            h = help()
+            h.i = self.i
+            h.j = x
+            return h
         else:
             # x -> n
             n = int(x)
@@ -293,8 +303,9 @@ class zombie(Function):
     def __call__(self, state, x):
         Function.__call__(self)
         if self.i is None:
-            self.i = x
-            return self
+            z = zombie()
+            z.i = x
+            return z
         else:
             if state.opponent is not None:
                 slot = state.opponent[MAX_SLOT_IDX - int(self.i)]
