@@ -242,6 +242,7 @@ class TestCards(unittest.TestCase):
         self.assertEqual(str(self.p0[3]), '{10000,I}')
         
     def test_card_zombie(self):
+        # Assign to dead slot.
         self.p1.slots[255].vitality = 0
         self.p0.right_appl('zombie', 0)
         self.p0.right_appl('zero', 0)
@@ -249,6 +250,15 @@ class TestCards(unittest.TestCase):
         self.p0.right_appl('zero', 0)
         self.assertEqual(str(self.p0[0]), '{10000,I}')
         self.assertEqual(str(self.p1[255]), '{-1,zero}')
+        # Assign to living slot.
+        self.p1.slots[255].vitality = 1
+        self.p0.right_appl('zombie', 0)
+        self.p0.right_appl('zero', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,zombie(zero)}')
+        self.p0.right_appl('zero', 0)
+        self.assertEqual(str(self.p0[0]), '{10000,I}')
+        self.assertEqual(str(self.p1[255]), '{1,zero}')
+        self.assertTrue(isinstance(self.p0.result, common.NotDead))
         
     def test_call_depth(self):
         self.p0.right_appl('S', 0)
@@ -261,8 +271,11 @@ class TestCards(unittest.TestCase):
     def test_apply_zombie(self):
         self.p0.right_appl('zero', 0)
         self.p0[0].vitality = -1
+        self.p0[1].field = 1
+        self.p0[1].vitality = -1
         self.p0.apply_zombies()
         self.assertEqual(str(self.p0[0]), '{0,I}')
+        self.assertEqual(str(self.p0[1]), '{0,I}')
 
 if __name__ == '__main__':
     #unittest.main()

@@ -1,4 +1,4 @@
-from common import NBR_OF_SLOTS, MAX_VITALITY
+from common import NBR_OF_SLOTS, MAX_SLOT_IDX, MAX_VITALITY
 
 class Strategy(object):
     def __init__(self, player, opponent, cmd):
@@ -6,6 +6,7 @@ class Strategy(object):
         self.opponent = opponent
         self.cmd = cmd
         self.current_move_seq = []
+        self.assigned_registers = set()
         
     def move(self):
         if not self.current_move_seq:
@@ -20,7 +21,7 @@ class Strategy(object):
     def get_register(self, min_ix=0):
         """ Return the index of a slot that can be used as a command register. """
         for ix, slot in enumerate(self.player.slots):
-            if (ix >= min_ix) and slot.alive:
+            if (ix >= min_ix) and slot.alive and (ix not in self.assigned_registers):
                 return ix
         return 0
         
@@ -61,7 +62,7 @@ class SimpleAttacker(Strategy):
         else:
             weakest = self.weakest_slot(self.opponent)
             strongest = self.strongest_slot(self.player)
-            return self.cmd.attack_slot(strongest, 255 - weakest, 0, 1)
+            return self.cmd.attack_slot(strongest, MAX_SLOT_IDX - weakest, 0, 1)
         
 class SimpleDefender(Strategy):
     def __init__(self, player, opponent, cmd):
@@ -77,10 +78,80 @@ class SimpleDefender(Strategy):
             strongest = self.strongest_slot(self.player)
             return self.cmd.help_slot(strongest, weakest, 0, 1)
             
+class Cache(object):
+    def __init__(self, strategy, player, cmd):
+        self.strategy = strategy
+        self.player = player
+        self.cmd = cmd
+        self.src_ref = None
+        self.tgt_ref = None
+        self.val_ref = None
+        self.cmd_ix = None
+        self.cmd_cache = None
+        self.sequence_terminator = None
+        
+    def is_valid(self):
+        for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache):
+            if (slot_ix is None) or (not self.player[slot_ix].alive):
+                return False
+        return True
+    
+    def invalidate(self):
+        for slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache):
+            self.strategy.assigned_registers.discard(slot_ix)
+        self.src_ref = None
+        self.tgt_ref = None
+        self.val_ref = None
+        self.cmd_ix = None
+        self.cmd_cache = None
+        
+    def assign_registers(self):
+        self.src_ref = self.strategy.get_register(0)
+        self.strategy.assigned_registers.add(self.src_ref)
+        self.tgt_ref = self.strategy.get_register(self.src_ref)
+        self.strategy.assigned_registers.add(self.tgt_ref)
+        self.val_ref = self.strategy.get_register(self.tgt_ref)
+        self.strategy.assigned_registers.add(self.val_ref)
+        self.cmd_ix = self.strategy.get_register(self.val_ref)
+        self.strategy.assigned_registers.add(self.cmd_ix)
+        self.cmd_cache = self.strategy.get_register(self.cmd_ix)
+        self.strategy.assigned_registers.add(self.cmd_cache)
+        
+    def slot_conflict(self, slot_ix):
+        return slot_ix in (self.src_ref, self.tgt_ref, self.val_ref, self.cmd_ix, self.cmd_cache)
+        
+    def load_registers(self, src_ix, tgt_ix, value):
+        moves = []
+        moves.extend(self.cmd.set_integer(self.src_ref, src_ix))
+        moves.extend(self.cmd.set_integer(self.tgt_ref, tgt_ix))
+        moves.extend(self.cmd.set_integer(self.val_ref, value))
+        return moves
+    
+    def store_cmd(self):
+        return self.cmd.copy_slot(self.cmd_ix, self.cmd_cache)
+        
+    def load_cmd(self):
+        return self.cmd.copy_slot(self.cmd_cache, self.cmd_ix)
+    
+    def attack_moves(self):
+        moves = self.cmd.attack_slot_ref(self.src_ref, self.tgt_ref, self.cmd_ix, self.val_ref)
+        self.sequence_terminator = moves[-1]
+        return moves
+        
+    def help_moves(self):
+        moves = self.cmd.help_slot_ref(self.src_ref, self.tgt_ref, self.cmd_ix, self.val_ref)
+        self.sequence_terminator = moves[-1]
+        return moves
+    
+    def cmd_terminator(self):
+        return self.sequence_terminator
+            
 class AttackWeakest(Strategy):
     def __init__(self, player, opponent, cmd):
         Strategy.__init__(self, player, opponent, cmd)
         self.attack_margin = 10
+        self.attack_cache = Cache(self, player, cmd)
+        self.help_cache = Cache(self, player, cmd)
         
     def next_move_seq(self):
         # Revive dead slots.
@@ -93,12 +164,21 @@ class AttackWeakest(Strategy):
         target = self.select_target()
         strongest = self.strongest_slot(self.player)
         attack_value = self.attack_value(self.opponent[target].vitality)
+        moves = []
         
         if self.player[strongest].vitality - self.attack_margin > attack_value:
-            cmd_reg = self.get_register()
-            value_reg = self.get_register(cmd_reg + 1)
-            moves = self.cmd.set_integer(value_reg, attack_value)
-            moves.extend(self.cmd.attack_slot(strongest, 255 - target, cmd_reg, value_reg))
+            if self.attack_cache.is_valid():
+                moves.extend(self.attack_cache.load_register(strongest, MAX_SLOT_IDX - target, attack_value))
+                moves.extend(self.attack_cache.load_cmd())
+                moves.append(self.attack_cache.cmd_terminator())
+            else:
+                self.attack_cache.invalidate()
+                self.attack_cache.assign_registers()
+                moves.extend(self.attack_cache.load_register(strongest, MAX_SLOT_IDX - target, attack_value))
+                attack_moves = self.attack_cache.attack_moves()
+                moves.extend(attack_moves[:-1])
+                moves.extend(self.attack_cache.store_cmd())
+                moves.append(attack_moves[-1])
             return moves
         
         # Build vitality.

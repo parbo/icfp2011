@@ -3,7 +3,7 @@ import sys
 from common import MAX_VITALITY, MAX_SLOT_IDX, MAX_CALL_DEPTH
 from common import NoInteger, NoFunction, NoOpponent, NotAlive, NotDead, WrongValue, CallDepthExceeded
 
-sys.setrecursionlimit(2 * MAX_CALL_DEPTH)
+sys.setrecursionlimit(10 * MAX_CALL_DEPTH)
 
 def get_card(name):
     """ Return an instance of the card with the given name. """
