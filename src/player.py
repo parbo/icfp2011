@@ -31,6 +31,7 @@ class Player(object):
         self.player.apply_zombies()
         move = self.strategy.move()
         self.player.application(*move)
+        self.strategy.move_done()
         self.write_move(*move)
 
     def opponent_move(self):

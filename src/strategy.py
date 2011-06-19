@@ -12,6 +12,11 @@ class Strategy(object):
             self.current_move_seq = list(reversed(self.next_move_seq()))
         return self.current_move_seq.pop()
         
+    def move_done(self):
+        if isinstance(self.player.result, Exception):
+            # Abort sequence after error.
+            self.current_move_seq = []
+        
     def get_register(self, min_ix=0):
         """ Return the index of a slot that can be used as a command register. """
         for ix, slot in enumerate(self.player.slots):
@@ -84,15 +89,16 @@ class AttackWeakest(Strategy):
             return self.cmd.revive_slot(dead_slots[0], self.get_register())
             
         # Look for a target to attack.
-        weakest = self.weakest_slot(self.opponent)
+        #weakest = self.weakest_slot(self.opponent)
+        target = self.select_target()
         strongest = self.strongest_slot(self.player)
-        attack_value = self.attack_value(self.opponent[weakest].vitality)
+        attack_value = self.attack_value(self.opponent[target].vitality)
         
         if self.player[strongest].vitality - self.attack_margin > attack_value:
             cmd_reg = self.get_register()
             value_reg = self.get_register(cmd_reg + 1)
             moves = self.cmd.set_integer(value_reg, attack_value)
-            moves.extend(self.cmd.attack_slot(strongest, 255 - weakest, cmd_reg, value_reg))
+            moves.extend(self.cmd.attack_slot(strongest, 255 - target, cmd_reg, value_reg))
             return moves
         
         # Build vitality.
@@ -103,6 +109,14 @@ class AttackWeakest(Strategy):
         moves = self.cmd.set_integer(value_reg, vitality_transfer)
         moves.extend(self.cmd.attack_slot(src, strongest, cmd_reg, value_reg))
         return moves
+    
+    def select_target(self):
+        """ Return the index of the prefered target. """
+        # The target is selected based on its stength and field contents.
+        # Weaker targets with much content are selected first.
+        slots = [(s.vitality - len(str(s.field)), ix) for ix, s in enumerate(self.opponent.slots)]
+        slots.sort()
+        return slots[0][1]
     
     def get_vitality_src(self):
         slots = [(s.vitality, ix) for ix, s in enumerate(self.player.slots)]

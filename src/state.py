@@ -9,7 +9,6 @@ class State(object):
         self.turn = 0
         self.opponent = None
         self.zombie_appl = False
-        # 'result' member is used for test purposes.
         self.result = None
         
     def __getitem__(self, key):
